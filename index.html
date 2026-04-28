@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SILENT CHEATZ | MASTER ADMIN</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+
+    <style>
+        :root { --red: #ff0033; --bg: #050505; }
+        body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .login-card { background: #0a0a0a; padding: 40px; border-radius: 30px; width: 330px; text-align: center; border: 1px solid #222; box-shadow: 0 0 30px rgba(255,0,51,0.2); }
+        #systemLayout { display: none; width: 100%; height: 100vh; }
+        .sidebar { width: 250px; background: #080808; border-right: 1px solid #222; display: flex; flex-direction: column; padding: 20px; transition: 0.4s; }
+        .sidebar.collapsed { width: 70px; }
+        .sidebar.collapsed .text { display: none; }
+        .logo { font-size: 20px; font-weight: 900; color: var(--red); margin-bottom: 30px; letter-spacing: 2px; text-transform: uppercase; }
+        .menu-item { padding: 15px; margin: 5px 0; border-radius: 12px; cursor: pointer; color: #555; display: flex; align-items: center; gap: 15px; transition: 0.3s; }
+        .menu-item.active, .menu-item:hover { background: rgba(255,0,51,0.1); color: white; border-left: 4px solid var(--red); }
+        .main-view { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #111, #000); }
+        .title { font-size: 40px; font-weight: 900; color: var(--red); text-shadow: 0 0 15px var(--red); margin-bottom: 25px; }
+        .box { background: rgba(15,15,15,0.8); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; border: 1px solid #222; margin-bottom: 20px; }
+        input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: white; outline: none; }
+        .btn-red { background: var(--red); border: none; font-weight: 900; cursor: pointer; letter-spacing: 1px; }
+        .btn-red:disabled { background: #550011; cursor: not-allowed; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; color: #444; font-size: 11px; padding: 10px; border-bottom: 1px solid #222; }
+        td { padding: 12px 10px; border-bottom: 1px solid #111; font-size: 13px; }
+        .status-active { color: #00ff66; font-weight: bold; }
+        .status-banned { color: var(--red); font-weight: bold; }
+        .icon { cursor: pointer; color: #444; margin-left: 10px; transition: 0.2s; }
+        .icon:hover { color: var(--red); }
+    </style>
+</head>
+<body>
+
+<div id="authOverlay">
+    <div class="login-card">
+        <h2 style="color:var(--red)">ADMIN LOGIN</h2>
+        <input type="email" id="logEmail" placeholder="Reseller Email">
+        <input type="password" id="logPass" placeholder="Password">
+        <button class="btn-red" onclick="login()">LOGIN SYSTEM</button>
+    </div>
+</div>
+
+<div id="systemLayout">
+    <div class="sidebar" id="sidebar">
+        <div class="logo"><span class="text">SILENT CHEATZ</span></div>
+        <div class="menu-item active" onclick="tab('genTab')"><i class="fas fa-plus"></i> <span class="text">GENERATE</span></div>
+        <div class="menu-item" onclick="tab('dashTab')"><i class="fas fa-list"></i> <span class="text">DASHBOARD</span></div>
+        <div class="menu-item" onclick="resetHWID()"><i class="fas fa-undo"></i> <span class="text">HWID RESET</span></div>
+        <div class="menu-item" onclick="toggleSB()" style="margin-top:auto"><i class="fas fa-bars"></i> <span class="text">MENU</span></div>
+        <div class="menu-item" onclick="location.reload()"><i class="fas fa-power-off"></i> <span class="text">LOGOUT</span></div>
+    </div>
+
+    <div class="main-view">
+        <div class="title">SILENT CHEATZ</div>
+        <div id="genTab" class="tab-box box">
+            <h3 style="color:#666">LICENSE GENERATOR</h3>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="custU" placeholder="Client Username">
+                <input type="text" id="custP" placeholder="Client Password">
+            </div>
+            <select id="vType">
+                <option value="10|86400">1 DAY - 10 PTS</option>
+                <option value="50|604800">7 DAYS - 50 PTS</option>
+                <option value="150|2592000">30 DAYS - 150 PTS</option>
+                <option value="500|31536000">LIFETIME - 500 PTS</option>
+            </select>
+            <button class="btn-red" id="genBtn" onclick="generate()">GENERATE KEY</button>
+            <p>Your Balance: <b style="color:orange"><span id="uPts">0</span> PTS</b></p>
+        </div>
+
+        <div id="dashTab" class="tab-box box" style="display:none">
+            <h3 style="color:#666">USER RECORDS</h3>
+            <table>
+                <thead>
+                    <tr><th>USER</th><th>PASS</th><th>LICENSE</th><th>STATUS</th><th>ACTIONS</th></tr>
+                </thead>
+                <tbody id="userTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyB0QsfBzK5qWN2DM3zMnYOMvZzGZvSz-q8",
+        authDomain: "silent-cheatz-d484b.firebaseapp.com",
+        databaseURL: "https://silent-cheatz-d484b-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "silent-cheatz-d484b"
+    };
+    const PANDA_API = "5d65ea2d-8778-4af8-983e-bcdaf0a10f20";
+    const SID = "09d46acc-f545-425f-843d-73bd1af92065";
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    function toggleSB() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+    function tab(id) {
+        document.querySelectorAll('.tab-box').forEach(b => b.style.display='none');
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        document.getElementById(id).style.display='block';
+        if(event) event.currentTarget.classList.add('active');
+    }
+
+    async function login() {
+        try {
+            await auth.signInWithEmailAndPassword(document.getElementById('logEmail').value, document.getElementById('logPass').value);
+            document.getElementById('authOverlay').style.display='none';
+            document.getElementById('systemLayout').style.display='flex';
+            db.ref('users/' + auth.currentUser.uid + '/points').on('value', s => document.getElementById('uPts').innerText = s.val() || 0);
+            loadData();
+        } catch (e) { Swal.fire('Error', 'Invalid Admin Credentials!', 'error'); }
+    }
+
+    async function generate() {
+        const u = document.getElementById('custU').value;
+        const p = document.getElementById('custP').value;
+        const val = document.getElementById('vType').value.split('|');
+        const cost = parseInt(val[0]);
+        const exp = parseInt(val[1]);
+        const btn = document.getElementById('genBtn');
+
+        const snap = await db.ref('users/' + auth.currentUser.uid + '/points').get();
+        const bal = snap.val() || 0;
+        if (bal < cost) return Swal.fire('Low Points', '', 'warning');
+
+        btn.disabled = true;
+
+        // GitHub Pages සඳහා CorsProxy පාවිච්චි කිරීම අනිවාර්යයි
+        const PROXY_URL = `https://corsproxy.io/?https://new.pandadevelopment.net/api/v1/service/${SID}/keys/create`;
+
+        try {
+            const res = await fetch(PROXY_URL, {
+                method: 'POST',
+                headers: { 'Authorization': PANDA_API, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ expiry: exp, amount: 1 })
+            });
+            const data = await res.json();
+            if(data.success) {
+                const key = data.data[0].key;
+                await db.ref('app_users/' + u).set({ username: u, password: p, key: key, status: 'active' });
+                await db.ref('users/' + auth.currentUser.uid).update({ points: bal - cost });
+                Swal.fire('Key Ready!', key, 'success');
+            } else { Swal.fire('Fail', data.message, 'error'); }
+        } catch(e) { Swal.fire('Error', 'API Connection Fail', 'error'); }
+        finally { btn.disabled = false; }
+    }
+
+    function loadData() {
+        db.ref('app_users').on('value', snap => {
+            const table = document.getElementById('userTable');
+            table.innerHTML = '';
+            snap.forEach(c => {
+                const d = c.val();
+                table.innerHTML += `<tr><td>${d.username}</td><td>${d.password}</td><td style="color:var(--red); font-weight:bold">${d.key}</td><td class="status-${d.status}">${d.status.toUpperCase()}</td><td><i class="fas fa-ban icon" onclick="banUnban('${d.username}','${d.key}','${d.status}')"></i></td></tr>`;
+            });
+        });
+    }
+
+    async function banUnban(u, k, s) {
+        const act = (s === 'active') ? 'ban' : 'unban';
+        const PROXY_URL = `https://corsproxy.io/?https://new.pandadevelopment.net/api/v1/service/${SID}/keys/${act}`;
+        try {
+            const res = await fetch(PROXY_URL, {
+                method: 'POST',
+                headers: { 'Authorization': PANDA_API, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: k })
+            });
+            const d = await res.json();
+            if(d.success) await db.ref('app_users/' + u).update({ status: (s==='active'?'banned':'active') });
+        } catch(e) { Swal.fire('Error', 'API Error', 'error'); }
+    }
+
+    async function resetHWID() {
+        const { value: k } = await Swal.fire({ title: 'Enter Key', input: 'text' });
+        if(k) {
+            const PROXY_URL = `https://corsproxy.io/?https://new.pandadevelopment.net/api/v1/service/${SID}/keys/reset`;
+            try {
+                const res = await fetch(PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Authorization': PANDA_API, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: k })
+                });
+                const d = await res.json();
+                d.success ? Swal.fire('Reset!', '', 'success') : Swal.fire('Fail', d.message, 'error');
+            } catch(e) { Swal.fire('Error', 'API Error', 'error'); }
+        }
+    }
+</script>
+</body>
+</html>
