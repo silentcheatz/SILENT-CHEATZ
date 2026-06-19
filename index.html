@@ -1,200 +1,434 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="si">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SILENT CHEATZ | MASTER ADMIN</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
-
+    <title>VORTEX CHEATZ - Hub Matrix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --red: #ff0033; --bg: #050505; }
-        body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .login-card { background: #0a0a0a; padding: 40px; border-radius: 30px; width: 330px; text-align: center; border: 1px solid #222; box-shadow: 0 0 30px rgba(255,0,51,0.2); }
-        #systemLayout { display: none; width: 100%; height: 100vh; }
-        .sidebar { width: 250px; background: #080808; border-right: 1px solid #222; display: flex; flex-direction: column; padding: 20px; transition: 0.4s; }
-        .sidebar.collapsed { width: 70px; }
-        .sidebar.collapsed .text { display: none; }
-        .logo { font-size: 20px; font-weight: 900; color: var(--red); margin-bottom: 30px; letter-spacing: 2px; text-transform: uppercase; }
-        .menu-item { padding: 15px; margin: 5px 0; border-radius: 12px; cursor: pointer; color: #555; display: flex; align-items: center; gap: 15px; transition: 0.3s; }
-        .menu-item.active, .menu-item:hover { background: rgba(255,0,51,0.1); color: white; border-left: 4px solid var(--red); }
-        .main-view { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #111, #000); }
-        .title { font-size: 40px; font-weight: 900; color: var(--red); text-shadow: 0 0 15px var(--red); margin-bottom: 25px; }
-        .box { background: rgba(15,15,15,0.8); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; border: 1px solid #222; margin-bottom: 20px; }
-        input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: white; outline: none; }
-        .btn-red { background: var(--red); border: none; font-weight: 900; cursor: pointer; letter-spacing: 1px; }
-        .btn-red:disabled { background: #550011; cursor: not-allowed; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; color: #444; font-size: 11px; padding: 10px; border-bottom: 1px solid #222; }
-        td { padding: 12px 10px; border-bottom: 1px solid #111; font-size: 13px; }
-        .status-active { color: #00ff66; font-weight: bold; }
-        .status-banned { color: var(--red); font-weight: bold; }
-        .icon { cursor: pointer; color: #444; margin-left: 10px; transition: 0.2s; }
-        .icon:hover { color: var(--red); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; -webkit-tap-highlight-color: transparent; }
+        :root { --bg-primary: #050811; --bg-card: #0d1326; --neon-blue: #00f3ff; --neon-pink: #ff0055; --neon-green: #00ff66; --text-main: #ade8f4; --glow: 0 0 12px rgba(0, 243, 255, 0.6); }
+        body { background-color: var(--bg-primary); color: var(--text-main); overflow-x: hidden; }
+        
+        #ban-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:#050811; z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; }
+        #ban-screen h1 { font-family:'Orbitron'; color:var(--neon-pink); font-size:40px; text-shadow:0 0 20px var(--neon-pink); }
+
+        header { background: rgba(13, 19, 38, 0.95); padding: 15px; border-bottom: 2px solid var(--neon-blue); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; }
+        .brand-container { display: flex; align-items: center; gap: 10px; }
+        .logo-placeholder { width: 35px; height: 35px; background: radial-gradient(circle, var(--neon-pink) 20%, transparent 70%); border: 2px dashed var(--neon-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; font-family: 'Orbitron'; }
+        .header-title { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--neon-blue); }
+        .header-title span { color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); }
+        .menu-trigger { font-size: 24px; color: var(--neon-blue); cursor: pointer; background: none; border: none; }
+
+        .side-menu { position: fixed; top: 0; right: -280px; width: 280px; height: 100%; background: #070c1e; border-left: 2px solid var(--neon-blue); z-index: 1000; transition: right 0.3s cubic-bezier(0.1, 0.8, 0.3, 1); padding: 20px; display: flex; flex-direction: column; }
+        .side-menu.open { right: 0; }
+        .side-menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid rgba(0, 243, 255, 0.2); padding-bottom: 15px; }
+        .close-trigger { font-size: 24px; color: var(--neon-pink); cursor: pointer; background: none; border: none; }
+        .menu-links-container { display: flex; flex-direction: column; gap: 10px; }
+        .nav-link { color: #70859c; font-size: 14px; font-weight: bold; cursor: pointer; text-transform: uppercase; padding: 12px; border: 1px solid rgba(0, 243, 255, 0.1); border-radius: 8px; background: rgba(5, 8, 17, 0.6); }
+        .nav-link.active { color: var(--neon-blue); border-color: var(--neon-blue); box-shadow: var(--glow); background: rgba(0, 243, 255, 0.1); }
+
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 995; display: none; backdrop-filter: blur(3px); }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+        .page { display: none; animation: slideIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: 16px; color: #fff; margin-bottom: 15px; border-left: 3px solid var(--neon-blue); padding-left: 8px; }
+        .card { background: var(--bg-card); border-radius: 12px; border: 1px solid rgba(0, 243, 255, 0.2); padding: 15px; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--neon-blue), var(--neon-pink)); }
+        
+        .video-container { position: relative; width: 100%; padding-bottom: 56.25%; margin-bottom: 15px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0, 243, 255, 0.3); background: #000; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+        .btn-action { display: block; width: 100%; background: linear-gradient(90deg, #00cdff, #0077ff); color: #000; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 13px; text-transform: uppercase; padding: 10px; border-radius: 8px; border: none; cursor: pointer; margin-top: 10px; }
+        .key-input { width: 100%; background: #050811; border: 1px solid var(--neon-pink); padding: 10px; border-radius: 6px; color: #fff; font-family: monospace; font-size: 14px; text-align: center; margin-bottom: 10px; }
+        .locked-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 8, 17, 0.95); z-index: 5; display: none; flex-direction: column; align-items: center; justify-content: center; color: var(--neon-pink); font-weight: bold; }
+        
+        canvas { border-radius: 50%; transition: transform 4s cubic-bezier(0.1, 0.8, 0.2, 1); }
+        .status-terminal { background: #040712; width: 100%; border-radius: 8px; padding: 10px; text-align: center; font-size: 13px; }
+        textarea, select, input[type="text"] { width: 100%; background: #050811; border: 1px solid rgba(0, 243, 255, 0.3); padding: 10px; border-radius: 6px; color: #fff; margin-bottom: 10px; }
+        .discount-badge { display: inline-block; background: var(--neon-green); color: #000; font-family: 'Orbitron'; font-weight: 900; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-left: 10px; }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
-<div id="authOverlay">
-    <div class="login-card">
-        <h2 style="color:var(--red)">ADMIN LOGIN</h2>
-        <input type="email" id="logEmail" placeholder="Reseller Email">
-        <input type="password" id="logPass" placeholder="Password">
-        <button class="btn-red" onclick="login()">LOGIN SYSTEM</button>
-    </div>
-</div>
-
-<div id="systemLayout">
-    <div class="sidebar" id="sidebar">
-        <div class="logo"><span class="text">SILENT CHEATZ</span></div>
-        <div class="menu-item active" onclick="tab('genTab')"><i class="fas fa-plus"></i> <span class="text">GENERATE</span></div>
-        <div class="menu-item" onclick="tab('dashTab')"><i class="fas fa-list"></i> <span class="text">DASHBOARD</span></div>
-        <div class="menu-item" onclick="resetHWID()"><i class="fas fa-undo"></i> <span class="text">HWID RESET</span></div>
-        <div class="menu-item" onclick="toggleSB()" style="margin-top:auto"><i class="fas fa-bars"></i> <span class="text">MENU</span></div>
-        <div class="menu-item" onclick="location.reload()"><i class="fas fa-power-off"></i> <span class="text">LOGOUT</span></div>
+    <div id="ban-screen">
+        <h1>ACCESS DENIED</h1>
+        <p style="color:#fff; margin-top:10px;">YOUR ACCOUNT HAS BEEN BANNED FOR MISUSE.</p>
     </div>
 
-    <div class="main-view">
-        <div class="title">SILENT CHEATZ</div>
-        <div id="genTab" class="tab-box box">
-            <h3 style="color:#666">LICENSE GENERATOR</h3>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="custU" placeholder="Client Username">
-                <input type="text" id="custP" placeholder="Client Password">
+    <div class="menu-overlay" id="menuBackdrop" onclick="toggleSideMenu(false)"></div>
+
+    <header>
+        <div class="brand-container">
+            <div class="logo-placeholder">VTX</div>
+            <div class="header-title">VORTEX <span>CHEATZ</span></div>
+        </div>
+        <button class="menu-trigger" onclick="toggleSideMenu(true)">☰</button>
+    </header>
+
+    <div class="side-menu" id="sideNavMenu">
+        <div class="side-menu-header">
+            <div id="user-display-name" style="font-family:'Orbitron'; font-size:12px; color:var(--neon-green);">GUEST MATRIX</div>
+            <button class="close-trigger" onclick="toggleSideMenu(false)">×</button>
+        </div>
+        <div class="menu-links-container">
+            <div class="nav-link active" id="lnk-auth" onclick="navigateTab('page-auth', 'lnk-auth')">🔑 Identity Core</div>
+            <div class="nav-link" id="lnk-free" onclick="navigateTab('page-free', 'lnk-free')">🔓 Free Panel</div>
+            <div class="nav-link" id="lnk-paid" onclick="navigateTab('page-paid', 'lnk-paid')">💎 Paid Premium</div>
+            <div class="nav-link" id="lnk-spin" onclick="navigateTab('page-spin', 'lnk-spin')">🌀 Discount Wheel</div>
+            <div class="nav-link" id="lnk-feed" onclick="navigateTab('page-feed', 'lnk-feed')">⭐ Feedback</div>
+            <div class="nav-link" id="lnk-issue" onclick="navigateTab('page-issue', 'lnk-issue')">🚨 Report Issue</div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <!-- IDENTITY PAGE -->
+        <div id="page-auth" class="page active">
+            <h2 class="section-title">Matrix Identity Portal</h2>
+            <div class="card" id="login-state-box">
+                <p style="text-align:center; margin-bottom:15px;">You must link your core to access panels.</p>
+                <button class="btn-action" onclick="loginWithGoogle()" style="background:#fff; color:#000;">Sign In With Google</button>
             </div>
-            <select id="vType">
-                <option value="10|86400">1 DAY - 10 PTS</option>
-                <option value="50|604800">7 DAYS - 50 PTS</option>
-                <option value="150|2592000">30 DAYS - 150 PTS</option>
-                <option value="500|31536000">LIFETIME - 500 PTS</option>
-            </select>
-            <button class="btn-red" id="genBtn" onclick="generate()">GENERATE KEY</button>
-            <p>Your Balance: <b style="color:orange"><span id="uPts">0</span> PTS</b></p>
+            <div class="card" id="profile-state-box" style="display:none;">
+                <p id="welcome-text" style="font-weight:bold; margin-bottom:10px;"></p>
+                <label>Set Matrix Custom Username</label>
+                <input type="text" id="custom-username-field" placeholder="Enter custom username...">
+                <button class="btn-action" onclick="updateMatrixUsername()">Update Username</button>
+            </div>
         </div>
 
-        <div id="dashTab" class="tab-box box" style="display:none">
-            <h3 style="color:#666">USER RECORDS</h3>
-            <table>
-                <thead>
-                    <tr><th>USER</th><th>PASS</th><th>LICENSE</th><th>STATUS</th><th>ACTIONS</th></tr>
-                </thead>
-                <tbody id="userTable"></tbody>
-            </table>
+        <!-- FREE PANEL -->
+        <div id="page-free" class="page">
+            <h2 class="section-title">Public Free Panel</h2>
+            <div class="card">
+                <div class="locked-overlay" id="free-lock-screen">🔒 MENU LOCKED BY HOST</div>
+                <div class="video-container">
+                    <iframe id="node-free-video" src="" allowfullscreen></iframe>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <div style="font-size:16px; font-weight:bold; color:#fff;" id="node-panel-title">Loading...</div>
+                    <span style="border:1px solid #00ff66; color:#00ff66; font-size:10px; padding:2px 6px;" id="node-panel-status">Checking</span>
+                </div>
+                <button class="btn-action" onclick="executeSecureDownload()">Get Public Access Link</button>
+            </div>
         </div>
+
+        <!-- PAID PANEL -->
+        <div id="page-paid" class="page">
+            <h2 class="section-title">Premium Access Dashboard</h2>
+            <div class="card" style="border-color:var(--neon-pink); margin-bottom:15px;">
+                <h3 style="font-family:'Orbitron'; font-size:12px; margin-bottom:8px; color:#fff;">🎁 HAVE A DISCOUNT / SPIN CODE?</h3>
+                <input type="text" class="key-input" id="vip-auth-key-slot" placeholder="ENTER DISCOUNT CODE HERE">
+                <button class="btn-action" onclick="validateDiscountKey()" style="background:linear-gradient(90deg, var(--neon-blue), #0055ff); color:#fff;">Apply Code</button>
+            </div>
+            <div class="card" style="border-color:#ffb300;">
+                <div class="locked-overlay" id="vip-lock-screen">⚠️ PREMIUM INFRASTRUCTURE LOCKED</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <div style="font-size:16px; font-weight:bold; color:#fff;" id="node-vip-title">VIP Premium Pass</div>
+                    <div>
+                        <span style="color:#ffb300; font-family:'Orbitron'; font-weight:900; font-size:20px;" id="node-vip-price">$0.00</span>
+                        <span id="discount-indicator" style="display:none;" class="discount-badge">5% OFF APPLIED</span>
+                    </div>
+                </div>
+                <!-- BUY BUTTON: Directs to WhatsApp instead of being totally locked -->
+                <button class="btn-action" id="buyVipBtn" onclick="sendWhatsAppOrder()" style="background:linear-gradient(90deg, #00ff66, #009933); color:#000;">🛒 Buy Premium Access</button>
+            </div>
+        </div>
+
+        <!-- SPIN WHEEL -->
+        <div id="page-spin" class="page">
+            <h2 class="section-title">Matrix Drop Engine</h2>
+            <div class="card">
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="position: relative; width: 240px; height: 240px; margin-bottom: 15px;">
+                        <div style="position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 16px solid var(--neon-pink); z-index: 10;"></div>
+                        <canvas id="mobileCanvas" width="240" height="240"></canvas>
+                    </div>
+                    <button class="btn-action" id="btnSpinNode" onclick="triggerMatrixSpin()" style="background:linear-gradient(90deg, var(--neon-pink), #bc003f); color:white;">Activate Spin Grid</button>
+                    <div class="status-terminal" style="margin-top:12px;">
+                        <div id="terminalStatus" style="color: var(--neon-blue); font-weight: bold;">Standby Authorized</div>
+                        <div id="terminalCode" style="display: none; color: var(--neon-green); font-family: monospace; margin-top: 5px; font-weight: bold; cursor:pointer;" onclick="navigator.clipboard.writeText(this.innerText.split(' ')[1]); alert('Code Copied!');"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FEEDBACK -->
+        <div id="page-feed" class="page">
+            <h2 class="section-title">Submit Matrix Feedback</h2>
+            <div class="card">
+                <label>Select Rating Stars</label>
+                <select id="feed-stars">
+                    <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                    <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                    <option value="3">⭐⭐⭐ 3 Stars</option>
+                </select>
+                <label>Write your Review</label>
+                <textarea id="feed-text" rows="4" placeholder="Enter service review text..."></textarea>
+                <button class="btn-action" onclick="submitFeedback()">Send Feedback</button>
+            </div>
+        </div>
+
+        <!-- ISSUE -->
+        <div id="page-issue" class="page">
+            <h2 class="section-title">Report Infrastructure Issue</h2>
+            <div class="card" style="border-color: var(--neon-pink);">
+                <label>Issue Classification</label>
+                <select id="issue-type">
+                    <option value="Link Broken">🔗 Access Link Broken</option>
+                    <option value="Key Error">🔑 Key Validation Failure</option>
+                </select>
+                <label>Describe the Fault</label>
+                <textarea id="issue-text" rows="4" placeholder="Explain what went wrong..."></textarea>
+                <button class="btn-action" onclick="submitIssue()" style="background:linear-gradient(90deg, var(--neon-pink), #bc003f); color:#fff;">Transmit Log Alert</button>
+            </div>
+        </div>
+
     </div>
-</div>
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyB0QsfBzK5qWN2DM3zMnYOMvZzGZvSz-q8",
-        authDomain: "silent-cheatz-d484b.firebaseapp.com",
-        databaseURL: "https://silent-cheatz-d484b-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "silent-cheatz-d484b"
-    };
-    const PANDA_API = "5d65ea2d-8778-4af8-983e-bcdaf0a10f20";
-    const SID = "09d46acc-f545-425f-843d-73bd1af92065";
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyCz6gq21JJDZqbEvw2B64ZpvfickUjTCW4",
+          authDomain: "vortex-cheatz-c8f5b.firebaseapp.com",
+          databaseURL: "https://vortex-cheatz-c8f5b-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "vortex-cheatz-c8f5b",
+          storageBucket: "vortex-cheatz-c8f5b.firebasestorage.app",
+          messagingSenderId: "662867197319",
+          appId: "1:662867197319:web:43dc0d2cf00de66d506722",
+          measurementId: "G-RJDL7B68CW"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
+        let currentUserProfile = null;
+        let currentActiveUsername = "Guest User";
+        let isDiscountApplied = false;
+        let activeDiscountCode = "NONE";
 
-    function toggleSB() { document.getElementById('sidebar').classList.toggle('collapsed'); }
-    function tab(id) {
-        document.querySelectorAll('.tab-box').forEach(b => b.style.display='none');
-        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-        document.getElementById(id).style.display='block';
-        if(event) event.currentTarget.classList.add('active');
-    }
-
-    async function login() {
-        try {
-            await auth.signInWithEmailAndPassword(document.getElementById('logEmail').value, document.getElementById('logPass').value);
-            document.getElementById('authOverlay').style.display='none';
-            document.getElementById('systemLayout').style.display='flex';
-            db.ref('users/' + auth.currentUser.uid + '/points').on('value', s => document.getElementById('uPts').innerText = s.val() || 0);
-            loadData();
-        } catch (e) { Swal.fire('Error', 'Invalid Admin Credentials!', 'error'); }
-    }
-
-    async function generate() {
-        const u = document.getElementById('custU').value;
-        const p = document.getElementById('custP').value;
-        const val = document.getElementById('vType').value.split('|');
-        const cost = parseInt(val[0]);
-        const exp = parseInt(val[1]);
-        const btn = document.getElementById('genBtn');
-
-        const snap = await db.ref('users/' + auth.currentUser.uid + '/points').get();
-        const bal = snap.val() || 0;
-        if (bal < cost) return Swal.fire('Low Points', '', 'warning');
-
-        btn.disabled = true;
-
-        // GitHub Pages සඳහා CorsProxy පාවිච්චි කිරීම අනිවාර්යයි
-        const PROXY_URL = `https://corsproxy.io/?https://new.pandadevelopment.net/api/v1/service/${SID}/keys/create`;
-
-        try {
-            const res = await fetch(PROXY_URL, {
-                method: 'POST',
-                headers: { 'Authorization': PANDA_API, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ expiry: exp, amount: 1 })
-            });
-            const data = await res.json();
-            if(data.success) {
-                const key = data.data[0].key;
-                await db.ref('app_users/' + u).set({ username: u, password: p, key: key, status: 'active' });
-                await db.ref('users/' + auth.currentUser.uid).update({ points: bal - cost });
-                Swal.fire('Key Ready!', key, 'success');
-            } else { Swal.fire('Fail', data.message, 'error'); }
-        } catch(e) { Swal.fire('Error', 'API Connection Fail', 'error'); }
-        finally { btn.disabled = false; }
-    }
-
-    function loadData() {
-        db.ref('app_users').on('value', snap => {
-            const table = document.getElementById('userTable');
-            table.innerHTML = '';
-            snap.forEach(c => {
-                const d = c.val();
-                table.innerHTML += `<tr><td>${d.username}</td><td>${d.password}</td><td style="color:var(--red); font-weight:bold">${d.key}</td><td class="status-${d.status}">${d.status.toUpperCase()}</td><td><i class="fas fa-ban icon" onclick="banUnban('${d.username}','${d.key}','${d.status}')"></i></td></tr>`;
-            });
-        });
-    }
-
-    async function banUnban(u, k, s) {
-        const act = (s === 'active') ? 'ban' : 'unban';
-        const PROXY_URL = `https://corsproxy.io/?https://new.pandadevelopment.net/api/v1/service/${SID}/keys/${act}`;
-        try {
-            const res = await fetch(PROXY_URL, {
-                method: 'POST',
-                headers: { 'Authorization': PANDA_API, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key: k })
-            });
-            const d = await res.json();
-            if(d.success) await db.ref('app_users/' + u).update({ status: (s==='active'?'banned':'active') });
-        } catch(e) { Swal.fire('Error', 'API Error', 'error'); }
-    }
-
-    async function resetHWID() {
-        const { value: k } = await Swal.fire({ title: 'Enter Key', input: 'text' });
-        if(k) {
-            const PROXY_URL = `https://corsproxy.io/?https://new.pandadevelopment.net/api/v1/service/${SID}/keys/reset`;
-            try {
-                const res = await fetch(PROXY_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': PANDA_API, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key: k })
+        // GLOBAL AUTH TRACKING
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                database.ref('blacklist/' + user.uid).on('value', snap => {
+                    if(snap.exists() && snap.val().banned === true) {
+                        document.getElementById('ban-screen').style.display = 'flex';
+                        return;
+                    }
                 });
-                const d = await res.json();
-                d.success ? Swal.fire('Reset!', '', 'success') : Swal.fire('Fail', d.message, 'error');
-            } catch(e) { Swal.fire('Error', 'API Error', 'error'); }
+
+                currentUserProfile = user;
+                document.getElementById('login-state-box').style.display = 'none';
+                document.getElementById('profile-state-box').style.display = 'block';
+                
+                database.ref('users/' + user.uid).on('value', snap => {
+                    if(snap.exists()) {
+                        currentActiveUsername = snap.val().username || "Matrix Member";
+                        document.getElementById('user-display-name').innerText = currentActiveUsername.toUpperCase();
+                        document.getElementById('welcome-text').innerText = "SYSTEM ACTIVE: " + currentActiveUsername;
+                        document.getElementById('custom-username-field').value = currentActiveUsername;
+                    } else {
+                        let defaultName = user.displayName || "User_" + Math.floor(Math.random()*1000);
+                        database.ref('users/' + user.uid).set({ uid: user.uid, username: defaultName, email: user.email });
+                    }
+                });
+            } else {
+                document.getElementById('login-state-box').style.display = 'block';
+                document.getElementById('profile-state-box').style.display = 'none';
+            }
+        });
+
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(e => alert(e.message));
         }
-    }
-</script>
+
+        function updateMatrixUsername() {
+            const name = document.getElementById('custom-username-field').value.trim();
+            if(!name) return alert("Username can't be empty!");
+            database.ref('users/' + currentUserProfile.uid).update({ username: name })
+            .then(() => alert("Username Transmitted Perfectly!"));
+        }
+
+        function toggleSideMenu(open) {
+            document.getElementById('sideNavMenu').classList.toggle('open', open);
+            document.getElementById('menuBackdrop').style.display = open ? 'block' : 'none';
+        }
+
+        function navigateTab(targetPage, currentTabId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(targetPage).classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.getElementById(currentTabId).classList.add('active');
+            toggleSideMenu(false);
+        }
+
+        let structuralDownloadTargetUrl = "#";
+        let baseVipPrice = 0.00;
+        let finalDisplayPrice = 0.00;
+        let vipPanelTitle = "VIP Premium Pass";
+
+        database.ref('vortex_config').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                document.getElementById('node-panel-title').innerText = data.freeTitle || 'No Title';
+                document.getElementById('node-panel-status').innerText = data.freeStatus || 'Safe';
+                structuralDownloadTargetUrl = data.freeUrl || "#";
+                document.getElementById('free-lock-screen').style.display = data.freeLock ? 'flex' : 'none';
+                if(data.freeVideoUrl) document.getElementById('node-free-video').src = data.freeVideoUrl;
+
+                vipPanelTitle = data.vipTitle || 'VIP Pass';
+                document.getElementById('node-vip-title').innerText = vipPanelTitle;
+                baseVipPrice = parseFloat(data.vipPrice) || 0.00;
+                
+                if(!isDiscountApplied) {
+                    finalDisplayPrice = baseVipPrice;
+                    document.getElementById('node-vip-price').innerText = "Rs. " + finalDisplayPrice;
+                }
+                document.getElementById('vip-lock-screen').style.display = data.vipLock ? 'flex' : 'none';
+            }
+        });
+
+        // VALIDATE DISCOUNT CODE
+        function validateDiscountKey() {
+            const inputKey = document.getElementById('vip-auth-key-slot').value.trim();
+            if(!inputKey) return alert("Please enter a code!");
+            
+            if(inputKey.startsWith("VTX-5OFF-")) {
+                database.ref('spin_codes/' + inputKey).once('value', snap => {
+                    if(snap.exists() && snap.val().status === "ACTIVE") {
+                        isDiscountApplied = true;
+                        activeDiscountCode = inputKey;
+                        finalDisplayPrice = baseVipPrice * 0.95; // 5% Off
+                        document.getElementById('node-vip-price').innerText = "Rs. " + finalDisplayPrice.toFixed(2);
+                        document.getElementById('discount-indicator').style.display = 'inline-block';
+                        alert("🎉 5% DISCOUNT CODE APPLIED!");
+                    } else { alert("❌ EXPIRED OR INVALID DISCOUNT CODE!"); }
+                });
+            } else { alert("❌ UNKNOWN FORMAT CODE!"); }
+        }
+
+        // WHATSAPP REDIRECTION ORDER
+        function sendWhatsAppOrder() {
+            if(!currentUserProfile) return alert("Please Login via Identity Core First!");
+            
+            const myPhoneNumber = "94701234567"; // 👈 මෙතනට ඔයාගේ WHATSAPP නම්බර් එක දාන්න (94 රටේ කේතයත් එක්ක)
+            
+            let messageText = `🔥 *NEW PREMIUM ORDER FROM VORTEX* 🔥\n\n`;
+            messageText += `👤 *User:* @${currentActiveUsername}\n`;
+            messageText += `📦 *Package:* ${vipPanelTitle}\n`;
+            messageText += `💰 *Final Price:* Rs. ${finalDisplayPrice.toFixed(2)}\n`;
+            
+            if(isDiscountApplied) {
+                messageText += `🎟️ *Applied Code:* ${activeDiscountCode} (5% Discount Added)\n`;
+            } else {
+                messageText += `🎟️ *Discount Code:* None Applied\n`;
+            }
+            
+            messageText += `\n⚡ _Please send me the activation key for my account!_`;
+            
+            const encodedText = encodeURIComponent(messageText);
+            const whatsappURL = `https://api.whatsapp.com/send?phone=${myPhoneNumber}&text=${encodedText}`;
+            
+            window.open(whatsappURL, '_blank');
+        }
+
+        function executeSecureDownload() { if(structuralDownloadTargetUrl !== "#") window.open(structuralDownloadTargetUrl, '_blank'); }
+
+        function submitFeedback() {
+            if(!currentUserProfile) return alert("Please Login via Identity Core First!");
+            const rating = document.getElementById('feed-stars').value;
+            const text = document.getElementById('feed-text').value;
+            if(!text) return alert("Please type your feedback!");
+            
+            database.ref('feedbacks').push({ rating, text, username: currentActiveUsername, uid: currentUserProfile.uid })
+            .then(() => { alert("⭐ Feedback Sent!"); document.getElementById('feed-text').value=''; });
+        }
+
+        function submitIssue() {
+            if(!currentUserProfile) return alert("Please Login via Identity Core First!");
+            const type = document.getElementById('issue-type').value;
+            const text = document.getElementById('issue-text').value;
+            if(!text) return alert("Please describe the fault!");
+            
+            database.ref('issues').push({ type, text, username: currentActiveUsername, uid: currentUserProfile.uid })
+            .then(() => { alert("🚨 Issue Registered!"); document.getElementById('issue-text').value=''; });
+        }
+
+        // --- WHEEL GRID ---
+        const canvasNode = document.getElementById('mobileCanvas');
+        const drawContext = canvasNode.getContext('2d');
+        const matrixSectors = [
+            {label: '5% OFF', color: '#00f3ff', isWin: true, type: 'DISCOUNT'}, {label: 'BETTER LUCK', color: '#0d1326', isWin: false},
+            {label: '5% OFF', color: '#00f3ff', isWin: true, type: 'DISCOUNT'}, {label: 'BETTER LUCK', color: '#131c38', isWin: false},
+            {label: 'BETTER LUCK', color: '#0d1326', isWin: false}, {label: 'BETTER LUCK', color: '#131c38', isWin: false},
+            {label: 'BETTER LUCK', color: '#0d1326', isWin: false}, {label: 'BETTER LUCK', color: '#131c38', isWin: false}
+        ];
+        const totalSectorsCount = matrixSectors.length;
+        const segmentArcAngle = 2 * Math.PI / totalSectorsCount;
+
+        function renderMobileWheel() {
+            drawContext.clearRect(0,0,240,240);
+            for (let i = 0; i < totalSectorsCount; i++) {
+                let currentAngleOffset = i * segmentArcAngle;
+                drawContext.beginPath(); drawContext.fillStyle = matrixSectors[i].color; drawContext.moveTo(120, 120);
+                drawContext.arc(120, 120, 115, currentAngleOffset, currentAngleOffset + segmentArcAngle); drawContext.lineTo(120, 120); drawContext.fill();
+                drawContext.save(); drawContext.translate(120, 120); drawContext.rotate(currentAngleOffset + segmentArcAngle / 2);
+                drawContext.textAlign = "right"; drawContext.fillStyle = matrixSectors[i].isWin ? '#fff' : '#70859c';
+                drawContext.font = "bold 10px Orbitron"; drawContext.fillText(matrixSectors[i].label, 110, 4); drawContext.restore();
+            }
+        }
+        renderMobileWheel();
+
+        let trackCurrentRotationDegrees = 0;
+        function triggerMatrixSpin() {
+            if(!currentUserProfile) return alert("Link your core inside Identity Portal to spin!");
+            const triggerBtnNode = document.getElementById('btnSpinNode');
+            const termStatusNode = document.getElementById('terminalStatus');
+            const termCodeNode = document.getElementById('terminalCode');
+
+            const lastSpinTimestamp = localStorage.getItem('vortex_last_spin_time');
+            const currentTimeStamp = new Date().getTime();
+            if (lastSpinTimestamp && (currentTimeStamp - lastSpinTimestamp < 86400000)) {
+                termStatusNode.innerHTML = `❌ <span style="color:var(--neon-pink);">LIMIT REACHED!</span>`;
+                return;
+            }
+
+            triggerBtnNode.disabled = true;
+            const rateFactor = Math.random() * 100;
+            let calculatedTargetIndex = 1; 
+
+            if (rateFactor < 20) { calculatedTargetIndex = 0; } 
+            else { const bad = [1,3,4,5,6,7]; calculatedTargetIndex = bad[Math.floor(Math.random()*bad.length)]; }
+
+            const processAbsoluteSpinAngle = trackCurrentRotationDegrees + (360 * 5) + (360 - (calculatedTargetIndex * 45) - 22.5);
+            trackCurrentRotationDegrees = processAbsoluteSpinAngle;
+            canvasNode.style.transform = `rotate(${processAbsoluteSpinAngle}deg)`;
+
+            setTimeout(() => {
+                triggerBtnNode.disabled = false;
+                const sector = matrixSectors[calculatedTargetIndex];
+                localStorage.setItem('vortex_last_spin_time', new Date().getTime());
+
+                if(sector.isWin) {
+                    termStatusNode.innerHTML = `🎰 WON: <span style="color:var(--neon-green);">${sector.label}</span>`;
+                    const saltToken = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    let finalGeneratedCode = "VTX-5OFF-" + saltToken;
+                    let dbLocNode = 'spin_codes/' + finalGeneratedCode;
+
+                    database.ref(dbLocNode).set({ status: "ACTIVE", timestamp: new Date().getTime() }).then(() => {
+                        termCodeNode.innerText = `CODE: ${finalGeneratedCode}`;
+                        termCodeNode.style.display = 'block';
+                    });
+                } else { termStatusNode.innerHTML = `❌ <span style="color:var(--neon-pink);">TRY AGAIN TOMORROW!</span>`; }
+            }, 4100);
+        }
+    </script>
 </body>
 </html>
